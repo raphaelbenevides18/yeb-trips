@@ -2,19 +2,37 @@ package org.benevides.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class Viagem extends PanacheEntity {
 
+    @NotBlank(message = "O título é obrigatório")
+    @Size(min = 3, max = 100, message = "O título deve ter entre 3 e 100 caracteres")
+    @Column(name = "titulo", nullable = false, length = 100)
     public String titulo;
+
+    @Size(max = 255, message = "A descrição deve ter no máximo 255 caracteres")
+    @Column(name = "descricao", length = 255)
     public String descricao;
+
+    @NotNull(message = "A data de início é obrigatória")
+    @FutureOrPresent(message = "A data de início não pode ser no passado")
+    @Column(name = "data_inicio", nullable = false)
     public LocalDate dataInicio;
+
+    @NotNull(message = "A data de fim é obrigatória")
+    @FutureOrPresent(message = "A data de fim não pode ser no passado")
+    @Column(name = "data_fim", nullable = false)
     public LocalDate dataFim;
-    public Double orcamentoTotal;
-    public int qtdDias;
 
     @ManyToMany
     @JoinTable(
@@ -22,12 +40,39 @@ public class Viagem extends PanacheEntity {
             joinColumns = @JoinColumn(name = "viagem_id"),
             inverseJoinColumns = @JoinColumn(name = "pessoa_id")
     )
-    public List<Pessoa> pessoas;
+    public List<Pessoa> pessoas = new ArrayList<>();;
 
     @OneToMany(mappedBy = "viagem", cascade = CascadeType.ALL, orphanRemoval = true)
-    public List<Roteiro> roteiros;
+    public List<Roteiro> roteiros = new ArrayList<>();;
 
+    @Transient
+    public int getQtdDias() {
+        if (dataInicio == null || dataFim == null) {
+            return 0;
+        }
+        return (int) ChronoUnit.DAYS.between(dataInicio, dataFim);
+    }
 
+    @Transient
+    public Double getOrcamentoTotal() {
+        if (roteiros == null || roteiros.isEmpty()) {
+            return 0.0;
+        }
+        return roteiros.stream()
+                .filter(r -> r.valor != null)
+                .mapToDouble(r -> r.valor)
+                .sum();
+    }
+
+    public void adicionarRoteiro(Roteiro roteiro) {
+        roteiros.add(roteiro);
+        roteiro.viagem = this; // Garante o vínculo do id da viagem no roteiro
+    }
+
+    public void removerRoteiro(Roteiro roteiro) {
+        roteiros.remove(roteiro);
+        roteiro.viagem = null;
+    }
     public String getTitulo() {
         return titulo;
     }
@@ -58,22 +103,6 @@ public class Viagem extends PanacheEntity {
 
     public void setDataFim(LocalDate dataFim) {
         this.dataFim = dataFim;
-    }
-
-    public Double getOrcamentoTotal() {
-        return orcamentoTotal;
-    }
-
-    public void setOrcamentoTotal(Double orcamentoTotal) {
-        this.orcamentoTotal = orcamentoTotal;
-    }
-
-    public int getQtdDias() {
-        return qtdDias;
-    }
-
-    public void setQtdDias(int qtdDias) {
-        this.qtdDias = qtdDias;
     }
 
     public List<Pessoa> getPessoas() {
