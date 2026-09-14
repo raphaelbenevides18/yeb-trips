@@ -6,6 +6,7 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -55,7 +56,7 @@ public class Viagem extends PanacheEntity {
 
     @Transient
     public Double getOrcamentoTotal() {
-        if (roteiros == null || roteiros.isEmpty()) {
+        if (!Hibernate.isInitialized(roteiros) || roteiros == null || roteiros.isEmpty()) {
             return 0.0;
         }
         return roteiros.stream()

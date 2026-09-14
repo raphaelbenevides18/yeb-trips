@@ -1,5 +1,6 @@
 package org.benevides.rest;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -17,12 +18,14 @@ public class PessoaResource {
 
     @GET
     //@Counted(value = "counted.getPessoa")
+    @RolesAllowed({"ADMIN", "USER"})
     public List<Pessoa> getPessoa() {
         return Pessoa.listAll();
     }
 
     @GET
     @Path("findByCpf")
+    @RolesAllowed({"ADMIN", "USER"})
     public Pessoa findByCpf(@QueryParam("cpf") String cpf) {
         return Pessoa.findByCpf(cpf);
     }
@@ -30,6 +33,7 @@ public class PessoaResource {
 
     @POST
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Pessoa createPessoa(@Valid Pessoa pessoa){
         pessoa.id = null;
         pessoa.persist();
@@ -39,6 +43,7 @@ public class PessoaResource {
     }
     @PUT
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Pessoa updatePessoa(@Valid Pessoa pessoa) {
         Pessoa p = Pessoa.findById(pessoa.id);
         p.nome = pessoa.nome;
@@ -53,6 +58,7 @@ public class PessoaResource {
     @DELETE
     @Path("/{cpf}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response deletePessoa(@PathParam("cpf") String cpf) {
         boolean deletado = Pessoa.deleteByCpf(cpf);
 
