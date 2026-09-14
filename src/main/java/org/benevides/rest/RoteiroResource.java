@@ -1,6 +1,7 @@
 package org.benevides.rest;
 
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -17,6 +18,7 @@ import java.util.List;
 public class RoteiroResource {
 
     @GET
+    @RolesAllowed({"ADMIN", "USER"})
     public List<Roteiro> getRoteiro() {
 
         return Roteiro.listAll();
@@ -24,6 +26,7 @@ public class RoteiroResource {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({"ADMIN", "USER"})
     public Response buscarPorId(@PathParam("id") Long id) {
         Roteiro roteiro = Roteiro.findById(id);
         if (roteiro == null) {
@@ -37,6 +40,7 @@ public class RoteiroResource {
     @POST
     @Path("/viagem/{viagemId}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response criarRoteiro(@PathParam("viagemId") Long viagemId, @Valid Roteiro roteiro) {
         Viagem viagem = Viagem.findById(viagemId);
         if (viagem == null) {
@@ -57,6 +61,7 @@ public class RoteiroResource {
     @PUT
     @Path("/{id}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response atualizarRoteiro(@PathParam("id") Long id, @Valid Roteiro roteiroAtualizado) {
         Roteiro roteiroExistente = Roteiro.findById(id);
         if (roteiroExistente == null) {
@@ -78,6 +83,7 @@ public class RoteiroResource {
     @DELETE
     @Path("/{id}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response deletar(@PathParam("id") Long id) {
         boolean deletado = Roteiro.deleteById(id);
         if (!deletado) {
@@ -88,9 +94,9 @@ public class RoteiroResource {
         return Response.noContent().build();
     }
 
-    // 6. LISTAR ROTEIROS DE UMA VIAGEM ESPECÍFICA
     @GET
     @Path("/viagem/{viagemId}")
+    @RolesAllowed({"ADMIN", "USER"})
     public Response listarPorViagem(@PathParam("viagemId") Long viagemId) {
         Viagem viagem = Viagem.findById(viagemId);
         if (viagem == null) {

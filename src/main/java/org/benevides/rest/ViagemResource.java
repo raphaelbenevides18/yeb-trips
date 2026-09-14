@@ -1,6 +1,7 @@
 package org.benevides.rest;
 
 import io.quarkus.panache.common.Page;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -20,6 +21,7 @@ public class ViagemResource {
 
     // 1. LISTAR TODAS AS VIAGENS (GET)
     @GET
+    @RolesAllowed({"USER", "ADMIN"})
     public List<Viagem> listarTodas(@QueryParam("page") @DefaultValue("0") int page,
                                     @QueryParam("size") @DefaultValue("10") int size) {
         return Viagem.findAll().page(Page.of(page, size)).list();
@@ -28,6 +30,7 @@ public class ViagemResource {
     // 2. BUSCAR VIAGEM POR ID
     @GET
     @Path("/{id}")
+    @RolesAllowed({"USER", "ADMIN"})
     public Response buscarPorId(@PathParam("id") Long id) {
         Viagem viagem = Viagem.findById(id);
         if (viagem == null) {
@@ -40,6 +43,7 @@ public class ViagemResource {
 
     @POST
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response criar(@Valid Viagem viagem) {
         // 1. Tratamento e Validação das Pessoas pelo CPF
         if (viagem.pessoas != null && !viagem.pessoas.isEmpty()) {
@@ -85,6 +89,7 @@ public class ViagemResource {
     @PUT
     @Path("/{id}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response atualizar(@PathParam("id") Long id, @Valid Viagem viagemAtualizada) {
         Viagem viagemExistente = Viagem.findById(id);
         if (viagemExistente == null) {
@@ -113,6 +118,7 @@ public class ViagemResource {
     @DELETE
     @Path("/{id}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response deletar(@PathParam("id") Long id) {
         boolean deletado = Viagem.deleteById(id);
         if (!deletado) {
@@ -126,6 +132,7 @@ public class ViagemResource {
     @POST
     @Path("/{viagemId}/pessoas/{cpf}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response adicionarPessoa(@PathParam("viagemId") Long viagemId, @PathParam("cpf") String cpf) {
         Viagem viagem = Viagem.findById(viagemId);
         if (viagem == null) {
@@ -160,6 +167,7 @@ public class ViagemResource {
     @DELETE
     @Path("/{viagemId}/pessoas/{cpf}")
     @Transactional
+    @RolesAllowed({"ADMIN"})
     public Response removerPessoa(@PathParam("viagemId") Long viagemId, @PathParam("cpf") String cpf) {
         Viagem viagem = Viagem.findById(viagemId);
         if (viagem == null) {

@@ -1,6 +1,7 @@
 package org.benevides.rest;
 
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -21,6 +22,7 @@ public class CotacaoResource {
 
     @GET
     @Path("/converter/{valor}")
+    @RolesAllowed({"USER", "ADMIN"})
     public Response getCotacaoAtual(@PathParam("valor") BigDecimal valorEmReais){
         // Chama o serviço para fazer a conversão via API externa
         BigDecimal valorConvertido = service.converterReaisParaEuros(valorEmReais);
