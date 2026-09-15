@@ -24,35 +24,52 @@ public class PessoaResource {
     }
 
     @GET
-    @Path("findByCpf")
+    @Path("findByCpf/{cpf}")
     @RolesAllowed({"ADMIN", "USER"})
-    public Pessoa findByCpf(@QueryParam("cpf") String cpf) {
-        return Pessoa.findByCpf(cpf);
+    public Response findByCpf(@PathParam("cpf") String cpf) {
+        Pessoa pessoa = Pessoa.findByCpf(cpf);
+
+        if (pessoa == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Pessoa com cpf " + cpf + " não encontrado.")
+                    .build();
+        }
+        return Response.ok(pessoa).build();
     }
 
 
     @POST
     @Transactional
     @RolesAllowed({"ADMIN"})
-    public Pessoa createPessoa(@Valid Pessoa pessoa){
+    public Response createPessoa(@Valid Pessoa pessoa){
         pessoa.id = null;
         pessoa.persist();
 
-        return pessoa;
-
+        return Response.status(Response.Status.CREATED)
+                .entity(pessoa)
+                .build();
     }
+
     @PUT
+    @Path("/{cpf}")
     @Transactional
     @RolesAllowed({"ADMIN"})
-    public Pessoa updatePessoa(@Valid Pessoa pessoa) {
-        Pessoa p = Pessoa.findById(pessoa.id);
+    public Response updatePessoa(@PathParam("cpf") String cpf, @Valid Pessoa pessoa) {
+
+        Pessoa p = Pessoa.findByCpf(cpf);
+
+        if (p == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Pessoa com cpf " + cpf + " não encontrado.")
+                    .build();
+        }
+
         p.nome = pessoa.nome;
-        p.cpf = pessoa.cpf;
         p.sexo = pessoa.sexo;
         p.dataNascimento = pessoa.dataNascimento;
         p.persist();
 
-        return p;
+        return Response.ok(p).build();
     }
 
     @DELETE

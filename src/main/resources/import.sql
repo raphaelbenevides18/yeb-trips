@@ -26,3 +26,4 @@ INSERT INTO viagem_pessoa (viagem_id, pessoa_id) VALUES (5, 3);
 
 -- 5. REINICIA A SEQUENCE A PARTIR DO ID 50 (evita conflito nos próximos POSTs)
 ALTER SEQUENCE IF EXISTS entity_seq RESTART WITH 50;
+ALTER SEQUENCE IF EXISTS pessoa_seq RESTART WITH 5;

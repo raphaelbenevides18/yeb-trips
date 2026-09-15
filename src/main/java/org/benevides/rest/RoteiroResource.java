@@ -75,6 +75,7 @@ public class RoteiroResource {
         roteiroExistente.nomeAtividade = roteiroAtualizado.nomeAtividade;
         roteiroExistente.descricaoAtividade = roteiroAtualizado.descricaoAtividade;
         roteiroExistente.valor = roteiroAtualizado.valor;
+        roteiroExistente.persist();
 
         return Response.ok(roteiroExistente).build();
     }

@@ -1,6 +1,7 @@
 package org.benevides.entity;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
@@ -28,11 +29,13 @@ public class Viagem extends PanacheEntity {
     @NotNull(message = "A data de início é obrigatória")
     @FutureOrPresent(message = "A data de início não pode ser no passado")
     @Column(name = "data_inicio", nullable = false)
+    @JsonbDateFormat("yyyy-MM-dd")
     public LocalDate dataInicio;
 
     @NotNull(message = "A data de fim é obrigatória")
     @FutureOrPresent(message = "A data de fim não pode ser no passado")
     @Column(name = "data_fim", nullable = false)
+    @JsonbDateFormat("yyyy-MM-dd")
     public LocalDate dataFim;
 
     @ManyToMany
@@ -90,6 +93,7 @@ public class Viagem extends PanacheEntity {
         this.descricao = descricao;
     }
 
+    @JsonbDateFormat("yyyy-MM-dd")
     public LocalDate getDataInicio() {
         return dataInicio;
     }
@@ -98,6 +102,7 @@ public class Viagem extends PanacheEntity {
         this.dataInicio = dataInicio;
     }
 
+    @JsonbDateFormat("yyyy-MM-dd")
     public LocalDate getDataFim() {
         return dataFim;
     }
