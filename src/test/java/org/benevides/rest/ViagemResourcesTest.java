@@ -30,7 +30,7 @@ import static io.restassured.RestAssured.given;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ViagemResourcesTest {
 
-    private static Long viagemIdCriada;
+    private static String viagemIdCriada;
 
     private String gerarToken(String username, String... roles) {
         return Jwt.issuer("https://org.benevides.jwt/issuer")
@@ -56,10 +56,10 @@ public class ViagemResourcesTest {
         String token = gerarToken("leitor", "USER");
 
         Viagem viagem = new Viagem();
-        viagem.titulo = "Viagem Sem Permissão";
-        viagem.descricao = "Teste Perfil USER";
-        viagem.dataInicio = LocalDate.now();
-        viagem.dataFim = LocalDate.now().plusDays(5);
+        viagem.setTitulo("Viagem Sem Permissão");
+        viagem.setDescricao("Teste Perfil USER");
+        viagem.setDataInicio(LocalDate.now());
+        viagem.setDataFim(LocalDate.now().plusDays(5));
 
         given()
                 .header("Authorization", "Bearer " + token)
@@ -86,7 +86,7 @@ public class ViagemResourcesTest {
         }
         """;
 
-        Number idExtraido = given()
+        viagemIdCriada = given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
                 .body(viagemJson)
@@ -96,8 +96,6 @@ public class ViagemResourcesTest {
                 .body("id", notNullValue())
                 .body("titulo", equalTo("Expedição Atacama"))
                 .extract().path("id");
-
-        viagemIdCriada = idExtraido.longValue();
     }
 
     @Test

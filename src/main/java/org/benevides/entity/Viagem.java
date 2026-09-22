@@ -8,122 +8,140 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.Hibernate;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-public class Viagem extends PanacheEntity {
 
-    @NotBlank(message = "O título é obrigatório")
-    @Size(min = 3, max = 100, message = "O título deve ter entre 3 e 100 caracteres")
-    @Column(name = "titulo", nullable = false, length = 100)
-    public String titulo;
 
-    @Size(max = 255, message = "A descrição deve ter no máximo 255 caracteres")
-    @Column(name = "descricao", length = 255)
-    public String descricao;
+@DynamoDbBean
+public class Viagem {
 
-    @NotNull(message = "A data de início é obrigatória")
-    @FutureOrPresent(message = "A data de início não pode ser no passado")
-    @Column(name = "data_inicio", nullable = false)
-    @JsonbDateFormat("yyyy-MM-dd")
-    public LocalDate dataInicio;
+        private String id;
 
-    @NotNull(message = "A data de fim é obrigatória")
-    @FutureOrPresent(message = "A data de fim não pode ser no passado")
-    @Column(name = "data_fim", nullable = false)
-    @JsonbDateFormat("yyyy-MM-dd")
-    public LocalDate dataFim;
+        @NotBlank(message = "O título é obrigatório")
+        @Size(min = 3, max = 100, message = "O título deve ter entre 3 e 100 caracteres")
+        private String titulo;
 
-    @ManyToMany
-    @JoinTable(
-            name = "viagem_pessoa",
-            joinColumns = @JoinColumn(name = "viagem_id"),
-            inverseJoinColumns = @JoinColumn(name = "pessoa_id")
-    )
-    public List<Pessoa> pessoas = new ArrayList<>();;
+        @Size(max = 255, message = "A descrição deve ter no máximo 255 caracteres")
+        private String descricao;
 
-    @OneToMany(mappedBy = "viagem", cascade = CascadeType.ALL, orphanRemoval = true)
-    public List<Roteiro> roteiros = new ArrayList<>();;
+        @NotNull(message = "A data de início é obrigatória")
+        @FutureOrPresent(message = "A data de início não pode ser no passado")
+        @JsonbDateFormat("yyyy-MM-dd")
+        private LocalDate dataInicio;
 
-    @Transient
-    public int getQtdDias() {
-        if (dataInicio == null || dataFim == null) {
-            return 0;
+        @NotNull(message = "A data de fim é obrigatória")
+        @FutureOrPresent(message = "A data de fim não pode ser no passado")
+        @JsonbDateFormat("yyyy-MM-dd")
+        private LocalDate dataFim;
+
+        // Em NoSQL, armazenamos a lista de IDs das pessoas associadas à viagem
+        private List<String> pessoaIds = new ArrayList<>();
+
+        // Mantidos para envio/recebimento nas respostas JSON
+        private List<Pessoa> pessoas = new ArrayList<>();
+        private List<Roteiro> roteiros = new ArrayList<>();
+
+        public Viagem() {
         }
-        return (int) ChronoUnit.DAYS.between(dataInicio, dataFim);
-    }
 
-    @Transient
-    public Double getOrcamentoTotal() {
-        if (!Hibernate.isInitialized(roteiros) || roteiros == null || roteiros.isEmpty()) {
-            return 0.0;
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
         }
-        return roteiros.stream()
-                .filter(r -> r.valor != null)
-                .mapToDouble(r -> r.valor)
-                .sum();
-    }
 
-    public void adicionarRoteiro(Roteiro roteiro) {
-        roteiros.add(roteiro);
-        roteiro.viagem = this; // Garante o vínculo do id da viagem no roteiro
-    }
+        public void setId(String id) {
+            this.id = id;
+        }
 
-    public void removerRoteiro(Roteiro roteiro) {
-        roteiros.remove(roteiro);
-        roteiro.viagem = null;
-    }
-    public String getTitulo() {
-        return titulo;
-    }
+        public String getTitulo() {
+            return titulo;
+        }
 
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
+        public void setTitulo(String titulo) {
+            this.titulo = titulo;
+        }
 
-    public String getDescricao() {
-        return descricao;
-    }
+        public String getDescricao() {
+            return descricao;
+        }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
+        public void setDescricao(String descricao) {
+            this.descricao = descricao;
+        }
 
-    @JsonbDateFormat("yyyy-MM-dd")
-    public LocalDate getDataInicio() {
-        return dataInicio;
-    }
+        @DynamoDbAttribute("data_inicio")
+        @JsonbDateFormat("yyyy-MM-dd")
+        public LocalDate getDataInicio() {
+            return dataInicio;
+        }
 
-    public void setDataInicio(LocalDate dataInicio) {
-        this.dataInicio = dataInicio;
-    }
+        public void setDataInicio(LocalDate dataInicio) {
+            this.dataInicio = dataInicio;
+        }
 
-    @JsonbDateFormat("yyyy-MM-dd")
-    public LocalDate getDataFim() {
-        return dataFim;
-    }
+        @DynamoDbAttribute("data_fim")
+        @JsonbDateFormat("yyyy-MM-dd")
+        public LocalDate getDataFim() {
+            return dataFim;
+        }
 
-    public void setDataFim(LocalDate dataFim) {
-        this.dataFim = dataFim;
-    }
+        public void setDataFim(LocalDate dataFim) {
+            this.dataFim = dataFim;
+        }
 
-    public List<Pessoa> getPessoas() {
-        return pessoas;
-    }
+        @DynamoDbAttribute("pessoa_ids")
+        public List<String> getPessoaIds() {
+            return pessoaIds;
+        }
 
-    public void setPessoas(List<Pessoa> pessoas) {
-        this.pessoas = pessoas;
-    }
+        public void setPessoaIds(List<String> pessoaIds) {
+            this.pessoaIds = pessoaIds;
+        }
 
-    public List<Roteiro> getRoteiros() {
-        return roteiros;
-    }
+        // Ignora a lista detalhada de pessoas do mapeamento do DynamoDB
+        @DynamoDbIgnore
+        public List<Pessoa> getPessoas() {
+            return pessoas;
+        }
 
-    public void setRoteiros(List<Roteiro> roteiros) {
-        this.roteiros = roteiros;
-    }
+        public void setPessoas(List<Pessoa> pessoas) {
+            this.pessoas = pessoas;
+        }
+
+        // Ignora a lista detalhada de roteiros do mapeamento do DynamoDB
+        @DynamoDbIgnore
+        public List<Roteiro> getRoteiros() {
+            return roteiros;
+        }
+
+        public void setRoteiros(List<Roteiro> roteiros) {
+            this.roteiros = roteiros;
+        }
+
+        @DynamoDbIgnore
+        public int getQtdDias() {
+            if (dataInicio == null || dataFim == null) {
+                return 0;
+            }
+            return (int) ChronoUnit.DAYS.between(dataInicio, dataFim);
+        }
+
+        @DynamoDbIgnore
+        public Double getOrcamentoTotal() {
+            if (roteiros == null || roteiros.isEmpty()) {
+                return 0.0;
+            }
+            return roteiros.stream()
+                    .filter(r -> r.getValor() != null)
+                    .mapToDouble(Roteiro::getValor)
+                    .sum();
+        }
 }

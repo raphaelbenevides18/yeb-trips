@@ -4,43 +4,44 @@ package org.benevides.entity;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "pessoa")
-public class Pessoa extends PanacheEntity {
+@DynamoDbBean
+public class Pessoa {
+
+    private String id;
 
     @NotBlank(message = "O nome é obrigatório")
     @Size(min = 2, max = 150, message = "O nome deve ter entre 2 e 150 caracteres")
-    @Column(name = "nome", nullable = false, length = 150)
-    public String nome;
+    private String nome;
 
     @NotNull(message = "O sexo é obrigatório")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "sexo", nullable = false, length = 20)
-    public Sexo sexo;
+    private Sexo sexo;
 
     @NotBlank(message = "O CPF é obrigatório")
     @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos numéricos")
-    @Column(name = "cpf", nullable = false, unique = true, length = 11)
-    public String cpf;
+    private String cpf;
 
     @NotNull(message = "A data de nascimento é obrigatória")
     @Past(message = "A data de nascimento deve ser uma data no passado")
-    @Column(name = "data_nascimento", nullable = false)
-    public LocalDate dataNascimento;
+    private LocalDate dataNascimento;
 
-    // Métodos utilitários convenientes no padrão Active Record do Panache
-    public static Pessoa findByCpf(String cpf) {
-        return find("cpf", cpf).firstResult();
+    // --- GETTERS E SETTERS ---
+
+    // Anotação da chave primária OBRIGATORIAMENTE no Getter
+    @DynamoDbPartitionKey
+    public String getId() {
+        return id;
     }
 
-    public static boolean deleteByCpf(String cpf) {
-        return delete("cpf", cpf) > 0;
+    public void setId(String id) {
+        this.id = id;
     }
-
-
 
     public String getNome() {
         return nome;
@@ -58,6 +59,7 @@ public class Pessoa extends PanacheEntity {
         this.sexo = sexo;
     }
 
+    @DynamoDbSecondaryPartitionKey(indexNames = "cpf-index")
     public String getCpf() {
         return cpf;
     }
@@ -66,6 +68,8 @@ public class Pessoa extends PanacheEntity {
         this.cpf = cpf;
     }
 
+    // Mapeamento de atributo personalizado OBRIGATORIAMENTE no Getter
+    @DynamoDbAttribute("data_nascimento")
     public LocalDate getDataNascimento() {
         return dataNascimento;
     }

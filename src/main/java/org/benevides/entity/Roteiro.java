@@ -6,49 +6,55 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "roteiro")
-public class Roteiro extends PanacheEntity {
+@DynamoDbBean
+public class Roteiro{
+
+    private String id;
 
     @NotNull(message = "A data da atividade é obrigatória")
     @Future(message = "A data da atividade deve ser uma data futura")
-    @Column(name = "data", nullable = false)
-    public LocalDate data;
+    private LocalDate data;
 
     @NotBlank(message = "O nome da atividade é obrigatório")
     @Size(min = 2, max = 40, message = "O nome da atividade deve ter entre 2 e 40 caracteres")
-    @Column(name = "nome_atividade", nullable = false, length = 40)
-    public String nomeAtividade;
+    private String nomeAtividade;
 
     @Size(max = 150, message = "A descrição deve ter até 150 caracteres")
-    @Column(name = "descricao_atividade", length = 150)
-    public String descricaoAtividade;
+    private String descricaoAtividade;
 
     @NotNull(message = "O valor é obrigatório")
     @PositiveOrZero(message = "O valor não pode ser negativo")
-    @Column(name = "valor", nullable = false)
-    public Double valor;
+    private Double valor;
 
-    // Chave estrangeira no banco de dados que aponta para Viagem
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "viagem_id")
-    @JsonbTransient // Evita loop infinito no JSON (Viagem -> Roteiro -> Viagem...)
-    public Viagem viagem;
-
+    // Referência à Viagem via ID (Chave Estrangeira lógica no NoSQL)
+    private String viagemId;
 
     public Roteiro() {
     }
 
-
-    public Roteiro(LocalDate data, String nomeAtividade, String descricaoAtividade, Double valor, Viagem viagem) {
+    public Roteiro(String id, LocalDate data, String nomeAtividade, String descricaoAtividade, Double valor, String viagemId) {
+        this.id = id;
         this.data = data;
         this.nomeAtividade = nomeAtividade;
         this.descricaoAtividade = descricaoAtividade;
         this.valor = valor;
-        this.viagem = viagem;
+        this.viagemId = viagemId;
+    }
+
+    @DynamoDbPartitionKey
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public LocalDate getData() {
@@ -59,6 +65,7 @@ public class Roteiro extends PanacheEntity {
         this.data = data;
     }
 
+    @DynamoDbAttribute("nome_atividade")
     public String getNomeAtividade() {
         return nomeAtividade;
     }
@@ -67,6 +74,7 @@ public class Roteiro extends PanacheEntity {
         this.nomeAtividade = nomeAtividade;
     }
 
+    @DynamoDbAttribute("descricao_atividade")
     public String getDescricaoAtividade() {
         return descricaoAtividade;
     }
@@ -82,12 +90,14 @@ public class Roteiro extends PanacheEntity {
     public void setValor(Double valor) {
         this.valor = valor;
     }
-    @JsonbTransient
-    public Viagem getViagem() {
-        return viagem;
+
+    @DynamoDbSecondaryPartitionKey(indexNames = "viagemId-index")
+    @DynamoDbAttribute("viagem_id")
+    public String getViagemId() {
+        return viagemId;
     }
 
-    public void setViagem(Viagem viagem) {
-        this.viagem = viagem;
+    public void setViagemId(String viagemId) {
+        this.viagemId = viagemId;
     }
 }

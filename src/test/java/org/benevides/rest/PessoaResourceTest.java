@@ -43,8 +43,8 @@ public class PessoaResourceTest {
         String token = gerarToken("leitor", "USER");
 
         Pessoa p = new Pessoa();
-        p.cpf = "99900011122";
-        p.nome = "Teste User";
+        p.setCpf("99900011122");
+        p.setNome("Teste User");
 
         given()
                 .header("Authorization", "Bearer " + token)

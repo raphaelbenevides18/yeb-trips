@@ -17,8 +17,8 @@ import static org.hamcrest.Matchers.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RoteiroResourceTest {
 
-    private static Long viagemId;
-    private static Long roteiroId;
+    private static String viagemId;
+    private static String roteiroId;
 
     private String gerarToken(String username, String... roles) {
         return Jwt.issuer("https://org.benevides.jwt/issuer")
@@ -42,7 +42,7 @@ public class RoteiroResourceTest {
         }
         """;
 
-        Number idExtraido = given()
+         viagemId = given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
                 .body(viagemJson)
@@ -53,11 +53,11 @@ public class RoteiroResourceTest {
                 .body("titulo", equalTo("Expedição Atacama"))
                 .extract().path("id");
 
-        viagemId = idExtraido.longValue();
+
     }
 
     @Test
-    @Order(1)
+    @Order(2)
     @DisplayName("Deve cadastrar novo roteiro associado à viagem como ADMIN")
     public void testCriarRoteiro() {
         String token = gerarToken("admin", "ADMIN");
@@ -67,10 +67,10 @@ public class RoteiroResourceTest {
             "nomeAtividade": "Passeio pelo Valle de la Luna",
             "descricaoAtividade": "Caminhada nas formações rochosas",
             "valor": 250.0,
-            "data":"2026-09-17"
+            "data":"2026-09-26"
         }
         """;
-        Number idExtraido = given()
+        roteiroId = given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
                 .pathParam("viagemId", viagemId)
@@ -81,7 +81,7 @@ public class RoteiroResourceTest {
                 .body("id", notNullValue())
                 .extract().path("id");
 
-        roteiroId = idExtraido.longValue();
+
     }
 
     @Test
@@ -115,7 +115,7 @@ public class RoteiroResourceTest {
             "nomeAtividade": "Mergulho VIP",
             "descricaoAtividade": "Mergulho irado",
             "valor": 450.0,
-            "data":"2026-09-17"
+            "data":"2026-09-30"
         }
         """;
 
