@@ -1,95 +1,59 @@
-# yeb-trips
+# ✈️ yeb-trips | Cloud-Native Travel Management REST API
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+[![Java 21](https://img.shields.io/badge/Java-21-orange?style=flat-square&logo=openjdk)](https://www.oracle.com/java/)
+[![Quarkus 3.39.1](https://img.shields.io/badge/Quarkus-3.39.1-blue?style=flat-square&logo=quarkus)](https://quarkus.io/)
+[![AWS ECS Fargate](https://img.shields.io/badge/AWS-ECS%20Fargate-FF9900?style=flat-square&logo=amazonaws)](https://aws.amazon.com/ecs/)
+[![AWS DynamoDB](https://img.shields.io/badge/AWS-DynamoDB-4053D6?style=flat-square&logo=amazonaws)](https://aws.amazon.com/dynamodb/)
+[![JWT RS256](https://img.shields.io/badge/Security-JWT%20RS256-green?style=flat-square)](https://jwt.io/)
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+**`yeb-trips`** is a high-performance backend microservice for travel, itinerary, and traveler management. Built with **Quarkus 3.39.1** and **Java 21**, it demonstrates modern cloud-native practices, serverless container orchestration on AWS, NoSQL modeling with DynamoDB Enhanced, and asymmetric RS256 JWT security.
 
-## Running the application in dev mode
+---
 
-You can run your application in dev mode that enables live coding using:
+## 🏛️ System Architecture
 
-```shell script
-./mvnw quarkus:dev
-```
+                       +-----------------------------------+
+                       |            HTTP Client            |
+                       +-----------------------------------+
+                                         | [ Bearer Token JWT ]
+                                         v
+                       +-----------------------------------+
+                       |          AWS ECS Fargate          |
+                       |       (Quarkus - yeb-trips)       |
+                       +-----------------------------------+
+                         /               |               \
+                        v                v                v
+             +-------------------+  +----------+  +-----------------+
+             | SSM Parameter     |  | DynamoDB |  |  AWS ECR        |
+             | Store (RSA Key)   |  | (NoSQL)  |  | (Registry)      |
+             +-------------------+  +----------+  +-----------------+
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+---
 
-## Packaging and running the application
+## 🛠️ Tech Stack & Key Dependencies
 
-The application can be packaged using:
+* **Java 21** & **Quarkus 3.39.1**
+* **Data & Persistence:** `quarkus-amazon-dynamodb-enhanced`, `quarkus-hibernate-orm-panache`
+* **Security:** `quarkus-smallrye-jwt`, `quarkus-smallrye-jwt-build` (RS256 Token issuance/verification)
+* **API & Observability:** `quarkus-rest-jsonb`, `quarkus-smallrye-openapi` (Swagger UI), `quarkus-smallrye-health`, `quarkus-smallrye-fault-tolerance`
+* **Cloud Infrastructure:** AWS ECS Fargate, AWS ECR, AWS DynamoDB, AWS SSM Parameter Store
 
-```shell script
-./mvnw package
-```
+---
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+## 🗄️ NoSQL Data Model (AWS DynamoDB)
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+| Table Name | Partition Key (PK) | Global Secondary Index (GSI) | Description |
+| :--- | :--- | :--- | :--- |
+| **`Pessoa`** | `id` | - | Traveler profile management |
+| **`Viagem`** | `id` | - | Trip details and participant list |
+| **`Roteiro`** | `id` | `viagemId-index` (`viagem_id`) | Itinerary activities mapped to trips |
 
-If you want to build an _über-jar_, execute the following command:
+---
 
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
+## 🚀 API Endpoints Summary
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/yeb-trips-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- REST ([guide](https://quarkus.io/guides/rest)): Build RESTful web services and APIs using Jakarta REST (formerly JAX-RS)
-- REST JSON-B ([guide](https://quarkus.io/guides/rest#json-serialisation)): JSON-B serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- JDBC Driver - H2 ([guide](https://quarkus.io/guides/datasource)): Connect to the H2 database via JDBC
-- REST Client ([guide](https://quarkus.io/guides/rest-client)): Type-safe HTTP client for consuming REST APIs using MicroProfile REST Client
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Generate OpenAPI schemas and serve Swagger UI for REST API documentation
-- SmallRye Fault Tolerance ([guide](https://quarkus.io/guides/smallrye-fault-tolerance)): Build fault-tolerant network services
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplified JPA/Hibernate data access layer with active record and repository patterns
-- SmallRye Health ([guide](https://quarkus.io/guides/smallrye-health)): Monitor service health
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### REST Client
-
-Invoke different services through REST with JSON
-
-[Related guide section...](https://quarkus.io/guides/rest-client)
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
-
-### SmallRye Health
-
-Monitor your application's health using SmallRye Health
-
-[Related guide section...](https://quarkus.io/guides/smallrye-health)
+* **Authentication (`/api/yebTrips/auth`)**: `GET /token/user`, `GET /token/admin`
+* **People (`/api/yebTrips/pessoa`)**: `POST /`, `GET /`
+* **Trips (`/api/yebTrips/viagem`)**: `POST /`, `GET /`, `GET /{id}`
+* **Itineraries (`/api/yebTrips/roteiro`)**: `POST /`, `GET /viagem/{viagemId}`
+* **Documentation & Health**: Swagger UI at `/q/swagger-ui/`, Health checks at `/q/health/`
